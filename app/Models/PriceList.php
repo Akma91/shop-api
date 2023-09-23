@@ -9,6 +9,8 @@ class PriceList extends Model
 {
     use HasFactory;
 
+    protected $hidden = ['pivot'];
+
     public function products()
     {
         return $this->belongsToMany(Product::class, 'products_price_lists', 'price_list_id', 'sku', 'id', 'sku');

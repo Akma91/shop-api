@@ -19,8 +19,9 @@ use Illuminate\Support\Facades\Route;
 
 Route::post('/orders/', [OrderController::class, 'store']);
 
-Route::get('/products/{product:sku}', [ProductController::class, 'show']);
+Route::get('/products/filter/', [ProductController::class, 'filter']);
 Route::get('/products/', [ProductController::class, 'list']);
+Route::get('/products/{product:sku}', [ProductController::class, 'show']);
 
 Route::get('/product-categories/{productCategory:id}', [ProductCategoryController::class, 'list']);
 

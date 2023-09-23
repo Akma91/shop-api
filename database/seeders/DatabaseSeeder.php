@@ -15,30 +15,13 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        Product::factory(100)->create();
-        UserContractPrice::factory(100)->create();
+        Product::factory(1000)->create();
+        UserContractPrice::factory(1000)->create();
         PriceList::factory(100)->create();
-        ProductCategory::factory(100)->create();
+        ProductCategory::factory(500)->create();
 
         $this->productPriceListPivotSeeder();
         $this->productProductsCategoryPivotSeeder();
-        /*Product::factory()
-            ->hasAttached(
-                PriceList::factory()->count(10),
-                ['sku' => Product::all()->random()->sku],
-            )
-            ->create();
-        Product::factory()
-            ->hasAttached(
-                PriceList::factory()->count(10),
-                ['sku' => Product::all()->random()->sku],
-            )
-            ->create();
-        /*PriceList::factory()
-        ->hasAttached(
-            Product::factory()->count(3)
-        )
-        ->create();*/
     }
 
     private function productPriceListPivotSeeder()
@@ -49,6 +32,14 @@ class DatabaseSeeder extends Seeder
         foreach ($priceLists as $priceList) {
             $priceList->products()->attach($products->random());
         }
+
+        foreach ($products as $key => $product) {
+            if($key == 0 || $key % 10 == 0){
+                $randomPriceList = $priceLists->random();
+            }
+            
+            $product->priceLists()->attach($randomPriceList);
+        }
     }
 
     private function productProductsCategoryPivotSeeder()
@@ -58,6 +49,14 @@ class DatabaseSeeder extends Seeder
 
         foreach ($productCategories as $productCategory) {
             $productCategory->products()->attach($products->random());
+        }
+
+        foreach ($products as $key => $product) {
+            if($key == 0 || $key % 10 == 0){
+                $randomProductCategory = $productCategories->random();
+            }
+            
+            $product->productCategories()->attach($randomProductCategory);
         }
     }
 }
