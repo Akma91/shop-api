@@ -11,17 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('user_contract_prices', function (Blueprint $table) {
+        Schema::create('contract_lists', function (Blueprint $table) {
+            $table->id();
             $table->integer('user_id');
-            $table->integer('price');
-            $table->string('sku');
             $table->timestamps();
-
-            $table->primary(['user_id', 'sku']);
-
-            $table->foreign('sku')->references('sku')->on('products')
-            ->onDelete('cascade');
-            // @TODO vidjeti onUpdate je li potreban
         });
     }
 
@@ -30,6 +23,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('user_contract_prices');
+        Schema::dropIfExists('contract_lists');
     }
 };

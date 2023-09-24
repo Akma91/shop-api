@@ -10,10 +10,7 @@ class ProductController extends Controller
 {
     public function show(Product $product)
     {
-        $productQuery = Product::query();
-
-        return $productQuery->with('priceLists')->paginate();
-        //return $product->toJson();
+        return $product->toJson();
     }
 
     public function list()
@@ -24,6 +21,8 @@ class ProductController extends Controller
     public function filter(Request $request)
     {
         $productQuery = Product::query();
+
+        $productQuery->select('products.*');
 
         //name
         if ($request->query('name')) {
@@ -38,42 +37,96 @@ class ProductController extends Controller
             });
         }
 
-        //format
+        ///// format categories
         $productQuery->with(['productCategories:name']);
 
 
-        //price
+        $coalesceArray = ['NULL'];
+
+        //priceList
         ////////////////////////////
         ////////////////////////////
 
         if($request->query('priceList')){
             $priceList = $request->query('priceList');
 
-            /*$productQuery->with(['priceLists' => function ($query) use ($priceList) {
-                $query->select('name', 'price')
-                    ->where('price_lists.name', $priceList);
-            }]);*/
+            $productQuery->join('products_price_lists', 'products.sku', '=', 'products_price_lists.sku')
+                ->join('price_lists', 'products_price_lists.price_list_id', '=', 'price_lists.id')
+                ->where('price_lists.name', $priceList)
+                ->selectRaw('products_price_lists.price as price_from_price_list')
+                ->with(['priceLists' => function ($query) use ($priceList) {
+                    $query->where('name', $priceList);
+                }]);
 
-            $productQuery->whereHas('priceLists', function ($productQuery) use ($priceList) {
-                $productQuery->where('name', $priceList);
-            });
-
-            //$productQuery->with('priceLists')->where('price_lists.name', $priceList);
+            $coalesceArray[] = 'products_price_lists.price';
         }
 
-        $productQuery->with(['priceLists:name,price']);
 
-        $sortedProducts = $productQuery->get()->sortBy(function ($product) {
-            $price = $product->priceLists->where('name', 'itaque')->first();
-        
-            return $price ? $price->price : 0;
-        });
+        ////////////////////////////
+        ////////////////////////////
+
+        //contractList
+        ////////////////////////////
+        ////////////////////////////
+
+        if($request->query('userId')){
+            $userId = $request->query('userId');
+
+            $productQuery->leftJoin('products_contract_lists', function ($join) use ($userId) {
+                $join->on('products.sku', '=', 'products_contract_lists.sku')
+                    ->join('contract_lists', 'products_contract_lists.contract_list_id', '=', 'contract_lists.id')
+                    ->where('contract_lists.user_id', '=', $userId);
+            }, 'filtered_contract_list');
+            $productQuery->selectRaw('products_contract_lists.price as price_from_contract_list');
+
+
+            $coalesceArray[] = 'products_contract_lists.price';
+        }
+
+        $coalesceArray = array_reverse($coalesceArray);
+
+        $productQuery->selectRaw('COALESCE(' . implode(', ', $coalesceArray) . ', 0) AS applied_price');
 
         ////////////////////////////
         ////////////////////////////
 
 
-        return $sortedProducts->values();;
+        //price
+        ////////////////////////////
+        ////////////////////////////
+
+        if($request->query('minPrice')){
+            $productQuery->having('applied_price', '>', (int)$request->query('minPrice'));
+        }
+
+        if($request->query('maxPrice')){
+            $productQuery->having('applied_price', '<', (int)$request->query('maxPrice'));
+        }
+
+        ////////////////////////////
+        ////////////////////////////
+
+
+
+        //sort
+        ////////////////////////////
+        ////////////////////////////
+        if($request->query('orderBy') && ($request->query('orderBy') === 'name' || $request->query('orderBy') === 'price')){
+            $column = $request->query('orderBy');
+
+            if($column === 'price'){
+                $column = 'applied_price';
+            }
+
+            if ($request->query('orderType') === 'asc' || !$request->query('orderType')){
+                $productQuery->orderBy($column, 'asc');
+            } else if ($request->query('orderType') === 'desc'){
+                $productQuery->orderBy($column, 'desc');
+            }
+
+        }
+
+        return $productQuery->paginate()->appends(request()->query());
     }
 
     //http://localhost/api/products/filter/?useId=1&priceList=&aqua&maxPrice=999200&minPrice=111&name=neko%20ime&productCategory=lolo&orderBy=price&orderType=asc

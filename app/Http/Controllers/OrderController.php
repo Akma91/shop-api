@@ -40,36 +40,37 @@ class OrderController extends Controller
         foreach ($validatedData['items'] as $orderItemData) {
             $orderItem = new OrderItem($orderItemData);
             $orderItemSku = $orderItemData['sku'];
+            $priceListName = $orderItemData['price_list_name'];
 
-            $priceList = PriceList::where('name', $orderItemData['price_list_name'])
-                ->whereHas('products', function ($query) use ($orderItemSku) {
-                    $query->where('products.sku', $orderItemSku);
-                })->first();
+            $productWithRequestedPriceList = Product::where('sku', $orderItemSku)
+                ->whereHas('priceLists', function ($query) use ($priceListName) {
+                    $query->where('name', $priceListName);
+                })
+                ->with(['priceLists' => function ($query) use ($priceListName) {
+                    $query->where('name', $priceListName);
+                }])
+                ->first();
 
-            
-            //$userContractPrice = UserContractPrice::where('user_id', $validatedData['user_id'])->where('sku', $orderItemSku)->first();
+            if ($productWithRequestedPriceList) {
+                $productPriceListPrice = $productWithRequestedPriceList->priceLists->first()->pivot->price;
+            }
+
+            //TODO dodati logiku sa novom arh
             $userContractPrice = UserContractPrice::where('user_id', 1)->where('sku', '18381')->first();
 
-            $appliedPrice = $userContractPrice->price ?: $priceList->price;
+            $appliedPrice = $userContractPrice?->price ?: $productPriceListPrice;
 
-            $orderItem->appliedUnitPrice = $appliedPrice;
+            $orderItem->applied_unit_price = $appliedPrice;
 
-
-            // RADI:
-            // $priceList = PriceList::where('name', $orderItemData['price_list_name'])->wherePivot('sku', $orderItemData['sku'])->firstOrFail();
-            // $product = $priceList->products()->wherePivot('sku', $orderItemData['sku'])->firstOrFail();
-
-           // $userContractPrice = UserContractPrice::where('user_id', $validatedData['user_id'])->where('sku', $orderItemData['sku'])->first();
-
-            //$order->orderItems()->save($orderItem);
+            $order->orderItems()->save($orderItem);
         }
 
         return response()->json(
             ['message' => 'Order created successfully', 
             'order' => $order, 
-            'priceList' => $priceList, 
+            'priceList' =>  $productPriceListPrice, 
             'userContract' => $userContractPrice,
-            'appliedUnitPrice' => $appliedPrice], 201
+            'appliedUnitPrice' => '$priceList'], 201
         );
     }
 

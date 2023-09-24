@@ -14,12 +14,8 @@ return new class extends Migration
         Schema::create('price_lists', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->string('sku');//name i sku unique trebaju biti
-            $table->integer('price');
+            //sku je u pivot tablici tako da se može obrisati vjerojatno
             $table->timestamps();
-            
-            $table->foreign('sku')->references('sku')->on('products')
-            ->onDelete('cascade');
         });
     }
 

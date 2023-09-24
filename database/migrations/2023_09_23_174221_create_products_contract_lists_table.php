@@ -11,14 +11,16 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('products_price_lists', function (Blueprint $table) {
+        Schema::create('products_contract_lists', function (Blueprint $table) {
             $table->id();
             $table->string('sku');
-            $table->unsignedBigInteger('price_list_id');//staviti da kombinacije ove dvije vrijednosti mora biti unique
+            $table->unsignedBigInteger('contract_list_id');
             $table->integer('price');
 
+            $table->unique(['sku', 'contract_list_id']);
+
             $table->foreign('sku')->references('sku')->on('products');
-            $table->foreign('price_list_id')->references('id')->on('price_lists');
+            $table->foreign('contract_list_id')->references('id')->on('contract_lists');
         });
     }
 
@@ -27,6 +29,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('products_price_lists');
+        Schema::dropIfExists('products_contract_lists');
     }
 };

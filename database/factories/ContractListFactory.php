@@ -2,13 +2,12 @@
 
 namespace Database\Factories;
 
-use App\Models\Product;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\PriceList>
+ * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\ContractList>
  */
-class PriceListFactory extends Factory
+class ContractListFactory extends Factory
 {
     /**
      * Define the model's default state.
@@ -18,8 +17,7 @@ class PriceListFactory extends Factory
     public function definition(): array
     {
         return [
-            'name' => fake()->word(),
-            // Unique za kombinackiju user_id sku
+            'user_id' => fake()->unique()->numberBetween(1, 10000),
         ];
     }
 }

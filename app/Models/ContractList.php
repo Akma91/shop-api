@@ -5,12 +5,12 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class PriceList extends Model
+class ContractList extends Model
 {
     use HasFactory;
 
     public function products()
     {
-        return $this->belongsToMany(Product::class, 'products_price_lists', 'price_list_id', 'sku', 'id', 'sku')->withPivot('price');
+        return $this->belongsToMany(Product::class, 'products_contract_lists', 'contract_list_id', 'sku', 'id', 'sku')->withPivot('price');
     }
 }
