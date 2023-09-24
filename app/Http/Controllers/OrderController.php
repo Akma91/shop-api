@@ -4,18 +4,20 @@ namespace App\Http\Controllers;
 
 use App\Models\Order;
 use App\Models\OrderItem;
-use App\Models\PriceList;
 use App\Models\Product;
-use App\Models\UserContractPrice;
+use Illuminate\Support\Facades\DB;
 
+//TODO obrisati ovo
 error_reporting(E_ALL);
 
 class OrderController extends Controller
 {
     public function store()
     {
+
+        //userId bi možda trebao biti optional
         $validatedData = request()->validate([
-            'user_id' => 'required|integer',
+            'user_id' => 'integer',
             'first_name' => 'required|string',
             'last_name' => 'required|string',
             'email' => 'required|string',
@@ -37,10 +39,13 @@ class OrderController extends Controller
             'phone' => $validatedData['phone'],
         ]);
 
+        $orderPrice = 0;
+
         foreach ($validatedData['items'] as $orderItemData) {
             $orderItem = new OrderItem($orderItemData);
             $orderItemSku = $orderItemData['sku'];
             $priceListName = $orderItemData['price_list_name'];
+            $orderItemQuantity = $orderItemData['quantity'];
 
             $productWithRequestedPriceList = Product::where('sku', $orderItemSku)
                 ->whereHas('priceLists', function ($query) use ($priceListName) {
@@ -55,22 +60,37 @@ class OrderController extends Controller
                 $productPriceListPrice = $productWithRequestedPriceList->priceLists->first()->pivot->price;
             }
 
+            if($validatedData['user_id']){
+                $productContractListPrice = DB::table('products_contract_lists')
+                ->leftJoin('contract_lists', 'products_contract_lists.contract_list_id', '=', 'contract_lists.id')
+                ->where('user_id', $validatedData['user_id'])
+                ->where('sku', $orderItemSku)
+                ->select('price')
+                ->first()->price;
+            }
+
             //TODO dodati logiku sa novom arh
-            $userContractPrice = UserContractPrice::where('user_id', 1)->where('sku', '18381')->first();
 
-            $appliedPrice = $userContractPrice?->price ?: $productPriceListPrice;
 
-            $orderItem->applied_unit_price = $appliedPrice;
+            $appliedPrice = $productContractListPrice ?: $productPriceListPrice;
 
-            $order->orderItems()->save($orderItem);
+            $appliedPriceWithQuantity = $appliedPrice * $orderItemQuantity;
+
+            $orderPrice += $appliedPriceWithQuantity;
+
+            //$orderItem->applied_unit_price = $appliedPrice;
+
+            //$order->orderItems()->save($orderItem);
         }
 
         return response()->json(
             ['message' => 'Order created successfully', 
             'order' => $order, 
             'priceList' =>  $productPriceListPrice, 
-            'userContract' => $userContractPrice,
-            'appliedUnitPrice' => '$priceList'], 201
+            'userContract' => $productContractListPrice,
+            'appliedUnitPrice' => $appliedPrice,
+            'appliedFullPrice' => $appliedPriceWithQuantity,
+            'orderPrice' => $orderPrice], 201
         );
     }
 

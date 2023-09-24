@@ -25,29 +25,4 @@ class Product extends Model
     {
         return $this->belongsToMany(ProductCategory::class, 'products_product_categories', 'sku', 'product_category_id', 'sku', 'id');
     }
-
-    /*public function getAppliedPriceAttribute()
-    {
-
-        $contractPriceCount = $this->contractLists->where('pivot.price', '>', 0)->count();
-        $priceListPriceCount = $this->priceLists->where('pivot.price', '>', 0)->count();
-
-        if ($contractPriceCount > 1 || $priceListPriceCount > 1) {
-            return null;
-        }
-
-        if ($contractPriceCount === 1 && $priceListPriceCount === 1) {
-            return $this->contractLists->sum('pivot.price');
-        }
-
-        if($priceListPriceCount === 1){
-            return $this->priceLists->sum('pivot.price');
-        }
-
-        if($contractPriceCount === 1){
-            return $this->contractLists->sum('pivot.price');
-        }
-
-        return null;
-    }*/
 }
