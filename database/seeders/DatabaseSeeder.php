@@ -38,7 +38,7 @@ class DatabaseSeeder extends Seeder
         foreach ($productsToPutInContractLists as $key => $product) {
             for ($x = 0; $x <= 5; $x++) {
 
-                // ovo se možda mopže obrisati
+                // ovo se može obrisati
                 if($key == 0 || $key % 10 == 0){
                     $randomContractList = $contractLists->random();
                 }

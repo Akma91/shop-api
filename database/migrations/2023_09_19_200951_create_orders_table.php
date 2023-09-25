@@ -12,12 +12,14 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('orders', function (Blueprint $table) {
+            //TODO add unique values
             $table->id();
             $table->integer('user_id');
             $table->string('first_name');
             $table->string('last_name');
-            $table->string('email'); // dodati unique
+            $table->string('email');
             $table->string('phone');
+            $table->json('total_price_modifiers')->nullable();
             $table->timestamps();
         });
     }

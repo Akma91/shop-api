@@ -19,7 +19,7 @@ class ProductFactory extends Factory
         return [
             'name' => fake()->word(),
             'description' => fake()->sentence(),
-            'sku' => fake()->unique()->numberBetween(100, 100000),
+            'sku' => fake()->unique()->numberBetween(100000, 10000000),
         ];
     }
 }

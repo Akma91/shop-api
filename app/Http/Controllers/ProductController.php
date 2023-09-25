@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Models\Product;
 use App\Interfaces\ProductFilterInterface;
 use App\Interfaces\ProductSorterInterface;
-use Illuminate\Http\Request;
 
 class ProductController extends Controller
 {
@@ -28,10 +27,10 @@ class ProductController extends Controller
         return Product::paginate();
     }
 
-    public function filter(Request $request)
+    public function filter()
     {
-        $productQuery = $this->productFilter->assignFiltersToProductQuery($request);
-        $productQuery = $this->productSorter->assignSortersToProductQuery($productQuery, $request);
+        $productQuery = $this->productFilter->assignFiltersToProductQuery(request());
+        $productQuery = $this->productSorter->assignSortersToProductQuery($productQuery, request());
 
         return $productQuery->paginate()->appends(request()->query());
     }

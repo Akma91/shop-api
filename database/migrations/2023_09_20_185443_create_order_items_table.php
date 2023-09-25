@@ -12,6 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('order_items', function (Blueprint $table) {
+            //TODO add unique values
             $table->id();
             $table->foreignId('order_id')->constrained()->cascadeOnDelete();
             $table->string('sku');
@@ -20,6 +21,8 @@ return new class extends Migration
             $table->integer('applied_unit_price');
             $table->string('price_list_name');
             $table->timestamps();
+
+            $table->foreign('sku')->references('sku')->on('products');
         });
     }
 
